@@ -4,6 +4,21 @@ Maze Agent Base Class
 agent_base.py
 
 """
+
+class Maze:
+    """
+    # - wall
+    . - floor
+    S - start
+    E - end
+    * - agent path
+    """
+
+    def __init__(self):
+        open(maze_test.txt)
+        
+
+
 class UpdatePathError(Exception):
     """Errors in updating the path
     """
