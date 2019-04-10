@@ -1,7 +1,7 @@
 """
-Maze Agent Base Class
+A* Search HW - path finding agents
 ---------------------
-agent_base.py
+hw2.py
 
 """
 
@@ -14,6 +14,36 @@ class Maze:
     * - agent path
     """
 
+    def __init__(self, width, height, maze_map):
+        self.width = width
+        self.height = height
+        self.map = maze_map
+
+    def get(self, position):
+        return self.map[position[0]][position[1]]
+
+    def getPossibleMoves(self, position):
+        if self.get(position) not in ['.', 'S']:
+            raise UpdatePathError('Current position not valid.')
+
+        legalNext = ['.', 'E']
+        moves = []
+        row = position[0]
+        col = position[1]
+        if self.map[row - 1][col] in legalNext: # Top
+            moves.append(tuple(row - 1, col))
+        if self.map[row][col + 1] in legalNext: # Right
+            moves.append(tuple(row, col + 1))
+        if self.map[row + 1][col] in legalNext: # Bottom
+            moves.append(tuple(row + 1, col))
+        if self.map[row][col - 1] in legalNext: # Left
+            moves.append(tuple(row, col - 1))
+
+        return moves
+            
+        
+
+class Environment:
     def __init__(self):
         file = open("mazes.txt", "r")
         self.mazes = []
@@ -24,23 +54,18 @@ class Maze:
             if line == '': 
                 i += 1
                 continue
-            maze = {}
-            # First line of maze - width height
-            maze['w'] = int(line.split(' ')[0])
-            maze['h'] = int(line.split(' ')[1])
-            mapLines = []
-            for x in range(maze['h']):
+            w = int(line.split(' ')[0])
+            h = int(line.split(' ')[1])
+            maze_map = []
+            for _ in range(h):
                 i += 1
                 line = lines[i].rstrip()
-                mapLines.append(list(line))
-            maze['map'] = mapLines
+                maze_map.append(list(line))
+            maze = Maze(w, h, maze_map)
             self.mazes.append(maze)
             i += 1
 
-        print(self.mazes)
         file.close()
-
-maze = Maze()
 
 class UpdatePathError(Exception):
     """Errors in updating the path
@@ -50,10 +75,9 @@ class UpdatePathError(Exception):
 class Agent:
     '''Base class for intelligent agents'''
 
-    def __init__(self, team, environment):
+    def __init__(self, maze):
         self.percepts = []
-        self.team = team
-        self.environment = Environment(environment.width, environment.height)
+        self.maze = maze
         # self.nextMove = (0, 0, 0)
         # self.available_moves = []
         # self.lastMove = (0, 0, 0)
@@ -96,12 +120,12 @@ class Agent:
      
 
 
-    def sense(self, percepts, environment):
-        '''process environment percepts'''
+    def sense(self, percepts, maze):
+        '''process maze percepts'''
         self.percepts.append(percepts)
 
         # percepts contain the available move choices
-        self.availableMoves = environment.getPossibleMoves()
+        self.availableMoves = maze.getPossibleMoves(self.last_pos)
         # self.lastMove = environment.lastMove
         # if self.lastMove[2] != 0:
         #     self.environment.put(
@@ -115,3 +139,9 @@ class Agent:
         '''return action agent decided on'''
         # return self.nextMove
         self.update_path(self.new_pos, self.last_pos)
+
+
+# The simulation code:
+environment = Environment()
+for maze in environment.mazes:
+    # Solve each maze with each kind of agent and print out results
