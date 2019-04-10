@@ -15,9 +15,32 @@ class Maze:
     """
 
     def __init__(self):
-        open(maze_test.txt)
-        
+        file = open("mazes.txt", "r")
+        self.mazes = []
+        lines = file.readlines()
+        i = 0
+        while i < len(lines):
+            line = lines[i].rstrip()
+            if line == '': 
+                i += 1
+                continue
+            maze = {}
+            # First line of maze - width height
+            maze['w'] = int(line.split(' ')[0])
+            maze['h'] = int(line.split(' ')[1])
+            mapLines = []
+            for x in range(maze['h']):
+                i += 1
+                line = lines[i].rstrip()
+                mapLines.append(list(line))
+            maze['map'] = mapLines
+            self.mazes.append(maze)
+            i += 1
 
+        print(self.mazes)
+        file.close()
+
+maze = Maze()
 
 class UpdatePathError(Exception):
     """Errors in updating the path
@@ -42,7 +65,7 @@ class Agent:
         
         self.path = []
 
-    def update_path (self, new_pos, last_pos)
+    def update_path (self, new_pos, last_pos):
         """Update the current maze path
         
         Parameters
