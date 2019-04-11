@@ -5,6 +5,8 @@ hw2.py
 
 """
 
+import collections
+
 class Maze:
     """
     # - wall
@@ -19,9 +21,14 @@ class Maze:
         self.height = height
         self.map = maze_map
 
+        for i in range(self.height):
+            for j in range(self.width):
+                if self.map[i][j] == 'S':
+                    self.start = (i, j)
+
     def get(self, position):
         return self.map[position[0]][position[1]]
-
+    
     def getPossibleMoves(self, position):
         if self.get(position) not in ['.', 'S']:
             raise UpdatePathError('Current position not valid.')
@@ -31,17 +38,34 @@ class Maze:
         row = position[0]
         col = position[1]
         if self.map[row - 1][col] in legalNext: # Top
-            moves.append(tuple(row - 1, col))
+            moves.append((row - 1, col))
         if self.map[row][col + 1] in legalNext: # Right
-            moves.append(tuple(row, col + 1))
+            moves.append((row, col + 1))
         if self.map[row + 1][col] in legalNext: # Bottom
-            moves.append(tuple(row + 1, col))
+            moves.append((row + 1, col))
         if self.map[row][col - 1] in legalNext: # Left
-            moves.append(tuple(row, col - 1))
+            moves.append((row, col - 1))
 
         return moves
-            
-        
+
+    def getNextMoves(self, last_position, current_position):
+        if self.get(current_position) not in ['.', 'S']:
+            raise UpdatePathError('Current position not valid.')
+
+        legalNext = ['.', 'E']
+        moves = []
+        row = current_position[0]
+        col = current_position[1]
+        if self.map[row - 1][col] in legalNext and not (last_position[0] == row - 1 and last_position[1] == col): # Top
+            moves.append((row - 1, col))
+        if self.map[row][col + 1] in legalNext and not (last_position[0] == row and last_position[1] == col + 1): # Right
+            moves.append((row, col + 1))
+        if self.map[row + 1][col] in legalNext and not (last_position[0] == row + 1 and last_position[1] == col): # Bottom
+            moves.append((row + 1, col))
+        if self.map[row][col - 1] in legalNext and not (last_position[0] == row and last_position[1] == col - 1): # Left
+            moves.append((row, col - 1))
+
+        return moves
 
 class Environment:
     def __init__(self):
@@ -84,8 +108,9 @@ class Agent:
 
 
         self.available_moves = []
+        self.current = self.maze.start
+        self.last_pos = self.maze.start
         self.new_pos = None
-        self.last_pos = None
         
         self.path = []
 
@@ -117,15 +142,16 @@ class Agent:
             self.path = self.path[:index+1] + [new_pos]
         else: ## this should only add the first item
             self.path += [new_pos]
+        self.current = new_pos
      
 
 
-    def sense(self, percepts, maze):
+    def sense(self, percepts):
         '''process maze percepts'''
         self.percepts.append(percepts)
 
         # percepts contain the available move choices
-        self.availableMoves = maze.getPossibleMoves(self.last_pos)
+        self.availableMoves = self.maze.getPossibleMoves(self.current)
         # self.lastMove = environment.lastMove
         # if self.lastMove[2] != 0:
         #     self.environment.put(
@@ -134,14 +160,45 @@ class Agent:
     def think(self):
         '''think about what action to take'''
         # print("thinking...rattle, rattle, rattle")
+        # Override to set new_pos and last_pos?
 
     def action(self):
         '''return action agent decided on'''
         # return self.nextMove
         self.update_path(self.new_pos, self.last_pos)
 
+class BreadthFirstAgent(Agent):
+    def __init__(self, maze):
+        super().__init__(maze)
+
+    def solve_maze(self):
+        frontier = [ [ self.maze.start ] ]
+        explored = [ ]
+
+        found_path = []
+        while (True):
+            if len(frontier) == 0:
+                raise UpdatePathError("No valid path found.")
+            path = frontier.pop(0)
+            explored.append(path)
+            node = path[-1]
+            node_before = (-1, -1)
+            if len(path) > 1: node_before = path[-2]
+            if self.maze.get(node) == 'E':
+                found_path = path
+                break # End found
+            children = self.maze.getNextMoves(node_before, node)
+            for child in children:
+                new_path = list(path)
+                new_path.append(child)
+                frontier.append(new_path)
+        
+        print(found_path)
+
 
 # The simulation code:
 environment = Environment()
 for maze in environment.mazes:
     # Solve each maze with each kind of agent and print out results
+    bfa = BreadthFirstAgent(maze)
+    bfa.solve_maze()
