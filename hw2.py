@@ -25,6 +25,8 @@ class Maze:
             for j in range(self.width):
                 if self.map[i][j] == 'S':
                     self.start = (i, j)
+                elif self.map[i][j] == 'E':
+                    self.end = (i, j)
 
     def get(self, position):
         return self.map[position[0]][position[1]]
