@@ -69,6 +69,23 @@ class Maze:
 
         return moves
 
+    def print_path(self, path):
+        # m = copy.deepcopy(self.map)
+        # print(m)
+        s = ""
+        for rx, row in enumerate(self.map):
+            for cx, col in enumerate(row):
+                if len(path) > 0 and (rx,cx) == path[-1]:
+                    # print(rx,cx)
+                    s += '&'
+                elif (rx,cx) in path:
+                    s += '*'
+                else:
+                    s += col
+            s += '\n'
+
+        print (s)
+
 class Environment:
     def __init__(self):
         file = open("mazes.txt", "r")
@@ -110,7 +127,7 @@ class Agent:
 
 
         self.available_moves = []
-        self.current = self.maze.start
+        self.current_pos = self.maze.start
         self.last_pos = self.maze.start
         self.new_pos = None
         
@@ -153,7 +170,7 @@ class Agent:
         self.percepts.append(percepts)
 
         # percepts contain the available move choices
-        self.availableMoves = self.maze.getPossibleMoves(self.current)
+        self.available_moves = self.maze.getPossibleMoves(self.current_pos)
         # self.lastMove = environment.lastMove
         # if self.lastMove[2] != 0:
         #     self.environment.put(
@@ -168,6 +185,7 @@ class Agent:
         '''return action agent decided on'''
         # return self.nextMove
         self.update_path(self.new_pos, self.last_pos)
+        self.current_pos = self.new_pos
 
 class BreadthFirstAgent(Agent):
     def __init__(self, maze):
@@ -195,8 +213,94 @@ class BreadthFirstAgent(Agent):
                 new_path.append(child)
                 frontier.append(new_path)
         
-        print(found_path)
+        print("BFS Summary:")
+        print("length", len(found_path))
+        self.maze.print_path(found_path)
 
+class RAWS(Agent):
+    """Rawser's agent with snake
+    """
+    def __init__ (self, maze):
+        super().__init__(maze)
+        self.open_set = set()
+        self.closed_set = set()
+        
+        self.paths_to = {}
+
+        self.open_set.add(maze.start)
+        self.g_score = { maze.start: 0 }
+        self.paths_to[maze.start] = []
+        self.f_score = { maze.start: self.get_snake_dist(maze.start, maze.end) }
+        self.current_pos = maze.start
+
+    def break_cond(self):
+        """
+        is there a special break condition
+        """
+        return len(self.open_set) == 0
+
+    def get_snake_dist(self, start, end):
+        return abs(start[0]-end[0]) +  abs(end[1]-end[1]) 
+
+    def think(self):
+        current = self.current_pos
+        # input()
+        # print(self.current_pos, self.available_moves)
+        # maze.print_path(self.path)
+        self.new_pos = self.available_moves[0]
+        goal = self.maze.end
+        
+        low_score = self.g_score[current] + self.get_snake_dist(current, self.new_pos) + self.get_snake_dist(self.new_pos, goal)
+        
+        self.open_set.remove(current)
+        self.closed_set.add(current)
+       
+
+        for neighbor in self.available_moves:
+            if neighbor in self.closed_set:
+                continue #Ignore the neighbor which is already evaluated.
+
+            # The distance from start to a neighbor
+            tentative_score = self.g_score[current] + self.get_snake_dist(current, neighbor)
+
+            if neighbor not in self.open_set:	#Discover a new node
+                self.open_set.add(neighbor)
+            elif tentative_score >= self.g_score[neighbor]:
+                continue
+
+            # This path is the best until now. Record it!
+            # cameFrom[neighbor] := current
+            self.paths_to[neighbor] = self.paths_to[current] +[neighbor]
+            
+            self.g_score[neighbor] = tentative_score
+            self.f_score[neighbor] = self.g_score[neighbor] + self.get_snake_dist(neighbor, goal)
+            if self.f_score[neighbor] <= low_score:
+                low_score = self.g_score[neighbor]
+                self.new_pos = neighbor
+        self.last_pos = self.current_pos
+
+    def action(self):
+        '''return action agent decided on'''
+        super().action()
+        os = list(self.open_set)
+        self.current_pos = os[0]
+        ms = self.f_score[os[0]]
+        for i in os:
+            if self.f_score[i] <= ms:
+                ms = self.f_score[i]
+                self.current_pos = i
+
+    def solve_maze(self):
+        while raws.current_pos != maze.end:
+            if raws.break_cond():
+                break
+            raws.sense([])
+            raws.think()
+            raws.action()
+            raws.path = raws.paths_to[raws.current_pos]
+        print("RAWS summary:")
+        print("length", len(raws.path))
+        maze.print_path(raws.path)
 
 # The simulation code:
 environment = Environment()
@@ -204,3 +308,8 @@ for maze in environment.mazes:
     # Solve each maze with each kind of agent and print out results
     bfa = BreadthFirstAgent(maze)
     bfa.solve_maze()
+
+    raws = RAWS(maze)
+    raws.solve_maze()
+
+    pass
