@@ -259,10 +259,11 @@ for maze in environment.mazes:
         raws.sense([],maze)
         raws.think()
         raws.action()
+        raws.path = raws.paths_to[raws.current_pos]
     print("RAWS summary:")
     print("length", len(raws.path))
     # print(raws.path)
-    maze.print_path(raws.paths_to[raws.current_pos])
+    maze.print_path(raws.path)
 
     pass
     # Solve each maze with each kind of agent and print out results
