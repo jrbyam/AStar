@@ -222,27 +222,31 @@ class DepthFirstAgent(Agent):
         super().__init__(maze)
 
     def solve_maze(self):
-        frontier = [ [ self.maze.start ] ]
+        frontier = [ self.maze.start ]
         explored = [ ]
 
-        found_path = []
+        end = tuple()
+        parentMap = { self.maze.start: None }
         while (True):
             if len(frontier) == 0:
                 raise UpdatePathError("No valid path found.")
-            path = frontier.pop(len(frontier) - 1)
-            explored.append(path)
-            node = path[-1]
-            node_before = (-1, -1)
-            if len(path) > 1: node_before = path[-2]
+            node = frontier.pop(len(frontier) - 1)
+            explored.append(node)
             if self.maze.get(node) == 'E':
-                found_path = path
+                end = node
                 break # End found
-            children = self.maze.getNextMoves(node_before, node)
+            children = self.maze.getPossibleMoves(node)
             for child in children:
-                new_path = list(path)
-                new_path.append(child)
-                frontier.append(new_path)
+                if child not in frontier and child not in explored:
+                    frontier.append(child)
+                    parentMap[child] = node
         
+        # Build path after end node found
+        found_path = []
+        while (end != None):
+            found_path = [end] + found_path
+            end = parentMap[end]
+
         print("DFS Summary:")
         print("length", len(found_path))
         self.maze.print_path(found_path)
