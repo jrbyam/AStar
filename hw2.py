@@ -179,12 +179,15 @@ class RAWS(Agent):
         super().__init__(maze)
         self.open_set = set()
         self.closed_set = set()
+        
+        self.paths_to = {}
 
         
         start = self.maze.getStartLoc()
         end = self.maze.getEndLoc()
         self.open_set.add(start)
         self.g_score = {start: 0}
+        self.paths_to[start] = []
         self.f_score = {start: self.get_snake_dist(start,end)}
         self.current_pos = start
 
@@ -225,7 +228,7 @@ class RAWS(Agent):
 
             # This path is the best until now. Record it!
             # cameFrom[neighbor] := current
-
+            self.paths_to[neighbor] = self.paths_to[current] +[neighbor]
             
             self.g_score[neighbor] = tentative_score
             self.f_score[neighbor] = self.g_score[neighbor] + self.get_snake_dist(neighbor, goal)
@@ -259,7 +262,7 @@ for maze in environment.mazes:
     print("RAWS summary:")
     print("length", len(raws.path))
     # print(raws.path)
-    maze.print_path(raws.path)
+    maze.print_path(raws.paths_to[raws.current_pos])
 
     pass
     # Solve each maze with each kind of agent and print out results
