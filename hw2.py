@@ -61,7 +61,7 @@ class Maze:
         for rx, row in enumerate(self.map):
             for cx, col in enumerate(row):
                 if len(path) > 0 and (rx,cx) == path[-1]:
-                    print(rx,cx)
+                    # print(rx,cx)
                     s += '&'
                 elif (rx,cx) in path:
                     s += '*'
@@ -189,6 +189,9 @@ class RAWS(Agent):
         self.current_pos = start
 
     def break_cond(self):
+        """
+        is there a special break condition
+        """
         return len(self.open_set) == 0
 
     def get_snake_dist(self, start, end):
@@ -196,9 +199,9 @@ class RAWS(Agent):
 
     def think(self):
         current = self.current_pos
-        input()
-        print(self.current_pos, self.available_moves)
-        maze.print_path(self.path)
+        # input()
+        # print(self.current_pos, self.available_moves)
+        # maze.print_path(self.path)
         self.new_pos = self.available_moves[0]
         goal = self.maze.getEndLoc()
         
@@ -253,7 +256,9 @@ for maze in environment.mazes:
         raws.sense([],maze)
         raws.think()
         raws.action()
-    print(raws.path, len(raws.path))
+    print("RAWS summary:")
+    print("length", len(raws.path))
+    # print(raws.path)
     maze.print_path(raws.path)
 
     pass
