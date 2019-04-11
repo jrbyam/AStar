@@ -217,6 +217,36 @@ class BreadthFirstAgent(Agent):
         print("length", len(found_path))
         self.maze.print_path(found_path)
 
+class DepthFirstAgent(Agent):
+    def __init__(self, maze):
+        super().__init__(maze)
+
+    def solve_maze(self):
+        frontier = [ [ self.maze.start ] ]
+        explored = [ ]
+
+        found_path = []
+        while (True):
+            if len(frontier) == 0:
+                raise UpdatePathError("No valid path found.")
+            path = frontier.pop(len(frontier) - 1)
+            explored.append(path)
+            node = path[-1]
+            node_before = (-1, -1)
+            if len(path) > 1: node_before = path[-2]
+            if self.maze.get(node) == 'E':
+                found_path = path
+                break # End found
+            children = self.maze.getNextMoves(node_before, node)
+            for child in children:
+                new_path = list(path)
+                new_path.append(child)
+                frontier.append(new_path)
+        
+        print("DFS Summary:")
+        print("length", len(found_path))
+        self.maze.print_path(found_path)
+
 class RAWS(Agent):
     """Rawser's agent with snake
     """
@@ -308,6 +338,9 @@ for maze in environment.mazes:
     # Solve each maze with each kind of agent and print out results
     bfa = BreadthFirstAgent(maze)
     bfa.solve_maze()
+
+    dfa = DepthFirstAgent(maze)
+    dfa.solve_maze()
 
     raws = RAWS(maze)
     raws.solve_maze()
