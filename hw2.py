@@ -132,6 +132,9 @@ class Agent:
         self.new_pos = None
         
         self.path = []
+        self.ic = 0
+        self.step_x_step = False
+
 
     def update_path (self, new_pos, last_pos):
         """Update the current maze path
@@ -194,12 +197,22 @@ class BreadthFirstAgent(Agent):
     def solve_maze(self):
         frontier = [ [ self.maze.start ] ]
         explored = [ ]
-
+        
         found_path = []
+        no_skip = True
         while (True):
             if len(frontier) == 0:
                 raise UpdatePathError("No valid path found.")
             path = frontier.pop(0)
+            if self.step_x_step and no_skip:
+
+                inp = input()
+                if inp == "skip":
+                    no_skip = False
+                print ("BFS iteration:", self.ic, ". Current path length:", len(path))
+                
+                self.maze.print_path(path)
+            self.ic += 1
             explored.append(path)
             node = path[-1]
             node_before = (-1, -1)
@@ -214,7 +227,9 @@ class BreadthFirstAgent(Agent):
                 frontier.append(new_path)
         
         print("BFS Summary:")
+        print("iterations", self.ic)
         print("length", len(found_path))
+        print("length/iterations:", len(found_path)/self.ic)
         self.maze.print_path(found_path)
 
 class DepthFirstAgent(Agent):
@@ -230,6 +245,11 @@ class DepthFirstAgent(Agent):
         while (True):
             if len(frontier) == 0:
                 raise UpdatePathError("No valid path found.")
+            if self.step_x_step and False: # self.path is not being updated so don't do step x step
+                input()
+                print ("DFS iteration:", self.ic, ". Current path length:", len(self.path))
+                self.maze.print_path(self.path)
+            self.ic += 1
             node = frontier.pop(len(frontier) - 1)
             explored.append(node)
             if self.maze.get(node) == 'E':
@@ -248,7 +268,9 @@ class DepthFirstAgent(Agent):
             end = parentMap[end]
 
         print("DFS Summary:")
+        print("iterations", self.ic)
         print("length", len(found_path))
+        print("length/iterations:", len(found_path)/self.ic)
         self.maze.print_path(found_path)
 
 class RAWS(Agent):
@@ -260,13 +282,13 @@ class RAWS(Agent):
         self.closed_set = set()
         
         self.paths_to = {}
-
+        self.no_skip = True
         self.open_set.add(maze.start)
         self.g_score = { maze.start: 0 }
         self.paths_to[maze.start] = []
         self.f_score = { maze.start: self.get_snake_dist(maze.start, maze.end) }
         self.current_pos = maze.start
-
+        
     def break_cond(self):
         """
         is there a special break condition
@@ -278,9 +300,18 @@ class RAWS(Agent):
 
     def think(self):
         current = self.current_pos
-        # input()
-        # print(self.current_pos, self.available_moves)
-        # maze.print_path(self.path)
+        
+        
+        if self.step_x_step and self.no_skip: 
+            inp = input()
+            # print(self.current_pos, self.available_moves)
+            print ("RAWS iteration:", self.ic, ". Current path length:", len(self.path))
+            maze.print_path(self.path)
+            if inp == "skip":
+                print ('skip')
+                self.no_skip = False
+        self.ic += 1
+        
         self.new_pos = self.available_moves[0]
         goal = self.maze.end
         
@@ -325,28 +356,59 @@ class RAWS(Agent):
                 self.current_pos = i
 
     def solve_maze(self):
-        while raws.current_pos != maze.end:
-            if raws.break_cond():
-                break
-            raws.sense([])
-            raws.think()
-            raws.action()
-            raws.path = raws.paths_to[raws.current_pos]
+        s = ""
+        try:
+            while self.current_pos != maze.end:
+                if self.break_cond():
+                    break
+                self.sense([])
+                self.think()
+                self.action()
+                self.path = self.paths_to[self.current_pos]
+        except IndexError: 
+            # print("RAWS No Path found")
+            s = "Does not reach goal"
+            pass
         print("RAWS summary:")
-        print("length", len(raws.path))
-        maze.print_path(raws.path)
+        print("iterations", self.ic)
+        print("length", len(self.path), s)
+        print("length/iterations:", len(self.path)/self.ic)
+        maze.print_path(self.path)
 
 # The simulation code:
+import sys
+
+step_x_step = False
+if len(sys.argv) == 2:
+    step_x_step = True 
+
+
 environment = Environment()
-for maze in environment.mazes:
+for mix, maze in enumerate(environment.mazes):
     # Solve each maze with each kind of agent and print out results
-    bfa = BreadthFirstAgent(maze)
-    bfa.solve_maze()
+    print("Maze:" , mix)
+    print(maze.print_path([]))
+    print ("START: BFS agent")
+    try:
+        bfa = BreadthFirstAgent(maze)
+        bfa.step_x_step = step_x_step
+        bfa.solve_maze()
+    except UpdatePathError:
+        print("BFA no path found\n")
+    
+    print ("START: DFS agent")
+    try:
+        dfa = DepthFirstAgent(maze)
+        dfa.step_x_step = step_x_step
+        dfa.solve_maze()
+    except UpdatePathError:
+        print("DFA no path found\n")
 
-    dfa = DepthFirstAgent(maze)
-    dfa.solve_maze()
-
+    print ("START: Rawser's agent with snake")
     raws = RAWS(maze)
+    raws.step_x_step = step_x_step
     raws.solve_maze()
 
+    print('----------------\n\n')
+    input()
     pass
