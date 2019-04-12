@@ -1,8 +1,9 @@
 """
 A* Search HW - path finding agents
----------------------
+----------------------------------
 hw2.py
 
+BY Jay Byam, Joseph Byam, and Rawser Spicer
 """
 
 import collections
@@ -14,6 +15,8 @@ class Maze:
     S - start
     E - end
     * - agent path
+
+    BY Jay Byam and Joseph Byam
     """
 
     def __init__(self, width, height, maze_map):
@@ -87,6 +90,8 @@ class Maze:
         print (s)
 
 class Environment:
+    """BY Jay Byam and Joseph Byam
+    """
     def __init__(self):
         file = open("mazes.txt", "r")
         self.mazes = []
@@ -116,7 +121,10 @@ class UpdatePathError(Exception):
     pass
 
 class Agent:
-    '''Base class for intelligent agents'''
+    '''Base class for intelligent agents
+    
+    adapted BY Rawser Spicer
+    '''
 
     def __init__(self, maze):
         self.percepts = []
@@ -191,6 +199,7 @@ class Agent:
         self.current_pos = self.new_pos
 
 class BreadthFirstAgent(Agent):
+    """BY Jay Byam"""
     def __init__(self, maze):
         super().__init__(maze)
 
@@ -233,6 +242,7 @@ class BreadthFirstAgent(Agent):
         self.maze.print_path(found_path)
 
 class DepthFirstAgent(Agent):
+    """BY Joseph Byam"""
     def __init__(self, maze):
         super().__init__(maze)
 
@@ -273,8 +283,11 @@ class DepthFirstAgent(Agent):
         print("length/iterations:", len(found_path)/self.ic)
         self.maze.print_path(found_path)
 
+
 class RAWS(Agent):
     """Rawser's agent with snake
+
+    BY Rawser Spicer
     """
     def __init__ (self, maze):
         super().__init__(maze)
@@ -383,6 +396,7 @@ if len(sys.argv) == 2:
     step_x_step = True 
 
 
+## group effort
 environment = Environment()
 for mix, maze in enumerate(environment.mazes):
     # Solve each maze with each kind of agent and print out results
