@@ -7,6 +7,7 @@ BY Jay Byam, Joseph Byam, and Rawser Spicer
 """
 
 import collections
+import time
 
 class Maze:
     """
@@ -204,6 +205,8 @@ class BreadthFirstAgent(Agent):
         super().__init__(maze)
 
     def solve_maze(self):
+        t0 = time.time()
+
         frontier = [ [ self.maze.start ] ]
         explored = [ ]
         
@@ -239,6 +242,7 @@ class BreadthFirstAgent(Agent):
         print("iterations", self.ic)
         print("length", len(found_path))
         print("length/iterations:", len(found_path)/self.ic)
+        print("time to solve:", time.time() - t0, "ms")
         self.maze.print_path(found_path)
 
 class DepthFirstAgent(Agent):
@@ -247,6 +251,8 @@ class DepthFirstAgent(Agent):
         super().__init__(maze)
 
     def solve_maze(self):
+        t0 = time.time()
+        
         frontier = [ self.maze.start ]
         explored = [ ]
 
@@ -281,6 +287,7 @@ class DepthFirstAgent(Agent):
         print("iterations", self.ic)
         print("length", len(found_path))
         print("length/iterations:", len(found_path)/self.ic)
+        print("time to solve:", time.time() - t0, "ms")
         self.maze.print_path(found_path)
 
 
@@ -369,6 +376,8 @@ class RAWS(Agent):
                 self.current_pos = i
 
     def solve_maze(self):
+        t0 = time.time()
+
         s = ""
         try:
             while self.current_pos != maze.end:
@@ -386,6 +395,7 @@ class RAWS(Agent):
         print("iterations", self.ic)
         print("length", len(self.path), s)
         print("length/iterations:", len(self.path)/self.ic)
+        print("time to solve:", time.time() - t0, "ms")
         maze.print_path(self.path)
 
 # The simulation code:
